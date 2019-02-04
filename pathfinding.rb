@@ -39,7 +39,7 @@ class Window < Gosu::Window
     @zoom_speed   = 0.01
 
     @font = Gosu::Font.new(18, bold: true)
-    @color_font = Gosu::Color.rgb(100, 50, 0)#Gosu::Color.rgb(100, 200, 100)
+    @color_font = Gosu::Color.rgb(100, 200, 100)
   end
 
   def draw

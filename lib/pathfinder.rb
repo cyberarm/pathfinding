@@ -30,7 +30,7 @@ class PathFinder
     @color_path    = Gosu::Color.rgba(255,255,255,150)
     @color_visited = Gosu::Color.rgba(0,0,255,100)
     @color_pending = Gosu::Color.rgba(0,0,100,255)
-    @color_current_node = Gosu::Color.rgb(100, 0, 0)
+    @color_current_node = Gosu::Color.rgb(255, 175, 20)
 
     @color_origin  = Gosu::Color::CYAN
     @color_target  = Gosu::Color::FUCHSIA
@@ -42,7 +42,11 @@ class PathFinder
 
   def draw
     if @show_nodes
-      (@checked_tiles + @nodes).each do |node|
+      @checked_tiles.each do |node|
+        tile = node.tile
+        Gosu.draw_rect(tile.x * @map.tile_size, tile.y * @map.tile_size, @map.tile_size, @map.tile_size, @color_visited, 10)
+      end
+      @nodes.each do |node|
         tile = node.tile
         Gosu.draw_rect(tile.x * @map.tile_size, tile.y * @map.tile_size, @map.tile_size, @map.tile_size, @color_pending, 10)
       end
