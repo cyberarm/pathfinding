@@ -38,6 +38,11 @@ class Window < Gosu::Window
     @scroll_speed = 2
     @zoom_speed   = 0.01
 
+    start = @map.tiles.sample
+    @start_x, @start_y = start.x, start.y
+    target = @map.tiles.sample
+    @target_x, @target_y = target.x, target.y
+
     @font = Gosu::Font.new(18, bold: true)
     @color_font = Gosu::Color.rgb(100, 200, 100)
   end
@@ -61,7 +66,27 @@ class Window < Gosu::Window
     @offset_y += @scroll_speed if button_down?(Gosu::KbUp)
     @offset_y -= @scroll_speed if button_down?(Gosu::KbDown)
 
-    self.caption = "X: #{(((self.mouse_x / @map.tile_size) - @offset_x) / @zoom).ceil}, Y: #{(((self.mouse_y / @map.tile_size) - @offset_x) / @zoom).ceil} (#{Gosu.fps})"
+    delete_tile                      if button_down?(Gosu::KbR)
+    add_tile(relative_x, relative_y) if button_down?(Gosu::MsMiddle)
+
+    self.caption = "X: #{relative_x}, Y: #{relative_y} (#{Gosu.fps})"
+  end
+
+  def relative_x
+    (((self.mouse_x / @map.tile_size) - @offset_x) / @zoom).floor
+  end
+  def relative_y
+    (((self.mouse_y / @map.tile_size) - @offset_x) / @zoom).floor
+  end
+
+  def add_tile(x, y, cost = nil)
+    @map.add(x, y)
+  end
+
+  def delete_tile
+    if tile = @map.at(relative_x, relative_y)
+      @map.remove(tile)
+    end
   end
 
   def button_down(id)
@@ -76,6 +101,16 @@ class Window < Gosu::Window
 
   def button_up(id)
     case id
+    when Gosu::MsLeft
+      start = @map.at(relative_x, relative_y)
+      if start
+        @start_x, @start_y = start.x, start.y
+      end
+    when Gosu::MsRight
+      target = @map.at(relative_x, relative_y)
+      if target
+        @target_x, @target_y = target.x, target.y
+      end
     when Gosu::KbTab
       @pathfinder.show_nodes = !@pathfinder.show_nodes
     when Gosu::MsWheelUp
@@ -85,7 +120,7 @@ class Window < Gosu::Window
       @zoom = @zoom_speed if @zoom < @zoom_speed
     when Gosu::KbF5
       tile = @map.tiles.sample
-      @pathfinder.find(origin_x: tile.x, origin_y: tile.y, target_x: rand(@map.columns), target_y: rand(@map.rows))
+      @pathfinder.find(origin_x: @start_x, origin_y: @start_y, target_x: @target_x, target_y: @target_y)
     end
   end
 

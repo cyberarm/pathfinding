@@ -22,12 +22,7 @@ class Map
       @columns.times do |x|
 
 
-        if @threshold < rand
-          cost = rand(1..@max_cost)
-          tile = Tile.new(x, y, cost, choose_color(cost))
-          @tiles[x][y] = tile
-          @array << tile
-        end
+        add(x, y)
       end
     end
 
@@ -55,5 +50,30 @@ class Map
 
   def at(x, y)
     @tiles[x][y]
+  end
+
+  def add(x, y)
+    return unless x < @columns && y < @rows
+    return if at(x, y)
+
+    if @threshold < rand
+      cost = rand(1..@max_cost)
+
+      tile = Tile.new(x, y, cost, choose_color(cost))
+
+      @tiles[x][y] = tile
+      @array << tile
+
+      @record = false
+    end
+  end
+
+  def remove(tile)
+    return unless tile
+
+    @array.delete(tile)
+    @tiles[tile.x][tile.y] = nil
+
+    @record = false # recache map
   end
 end
