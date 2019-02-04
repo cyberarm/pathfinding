@@ -6,9 +6,9 @@ class Map
     @tiles = Hash.new {|hash, value| hash[value] = Hash.new { |h, v| h[v] = nil }}
     @array = []
     @threshold = 0.1
+    @max_cost  = 5
 
     @tile_size = tile_size
-
     generate
   end
 
@@ -23,7 +23,7 @@ class Map
 
 
         if @threshold < rand
-          cost = rand(1..10)
+          cost = rand(1..@max_cost)
           tile = Tile.new(x, y, cost, choose_color(cost))
           @tiles[x][y] = tile
           @array << tile
@@ -35,12 +35,16 @@ class Map
   end
 
   def choose_color(cost)
-      return Gosu::Color.from_hsv(90, 1, 0.3)#(0.5 / cost) + 0.2)
+    max = 100
+    r = (max * cost) / @max_cost
+    g = 150 - r
+    b = 0
+    Gosu::Color.rgb(r, g, b)
   end
 
   def draw
-    @record ||= Gosu.render(@columns * @tile_size, @rows * @tile_size) do # BIG maps are to big for A framebuffer
-    # @record ||= Gosu.record(@columns * @tile_size, @rows * @tile_size) do
+    # @record ||= Gosu.render(@columns * @tile_size, @rows * @tile_size) do # BIG maps are to big for A framebuffer
+    @record ||= Gosu.record(@columns * @tile_size, @rows * @tile_size) do
       @array.each do |tile|
         Gosu.draw_rect(tile.x * tile_size, tile.y * tile_size, @tile_size, @tile_size, tile.color)
       end

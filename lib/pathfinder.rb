@@ -2,12 +2,15 @@ class PathFinder
   Node = Struct.new(:tile, :parent, :distance, :cost, :visited)
 
   attr_reader :status
-  attr_accessor :speed
+  attr_accessor :speed, :show_nodes
   def initialize(map:)
     @map = map
     @path = []
     @speed = 1
     @threads = []
+    @threaded = (ARGV.join.include?("-t") || ARGV.join.include?("--threaded")) ? true : false
+    @diagonal = (ARGV.join.include?("-nd") || ARGV.join.include?("--nodiagonal")) ? false : true
+    @show_nodes = true
 
     @nodes = [] # pending traversal
     @checked_tiles = []
@@ -18,7 +21,6 @@ class PathFinder
     @depth = 0
     @max_depth = Float::INFINITY
 
-    @diagonal = true
     @status = "Waiting..."
 
     @visited = Hash.new do |hash, value|
@@ -39,9 +41,11 @@ class PathFinder
   end
 
   def draw
-    (@checked_tiles + @nodes).each do |node|
-      tile = node.tile
-      Gosu.draw_rect(tile.x * @map.tile_size, tile.y * @map.tile_size, @map.tile_size, @map.tile_size, @color_pending, 10)
+    if @show_nodes
+      (@checked_tiles + @nodes).each do |node|
+        tile = node.tile
+        Gosu.draw_rect(tile.x * @map.tile_size, tile.y * @map.tile_size, @map.tile_size, @map.tile_size, @color_pending, 10)
+      end
     end
 
     @path.each do |node|
@@ -65,6 +69,11 @@ class PathFinder
   def update
     if Gosu.milliseconds >= @last_update + @interval
       @last_update = Gosu.milliseconds
+
+      @speed.to_i.times do
+        break unless @seeking && @depth < @max_depth && !@threaded
+        seek
+      end
     end
   end
 
@@ -94,10 +103,10 @@ class PathFinder
 
     @current_node = create_node(origin_x, origin_y)
     @current_node.distance = 0
-    @current_node.cost = @map.at(origin_x, origin_y).cost
+    @current_node.cost     = 0 # Origin, travel cost is 0
     add_node(@current_node)
 
-    run
+    run if @threaded
   end
 
   def run
@@ -106,7 +115,6 @@ class PathFinder
       me = Thread.current
       while(@seeking && @depth < @max_depth && me.alive?)
         seek
-        # sleep 0.0001
       end
     end
   end
@@ -124,7 +132,6 @@ class PathFinder
 
     if @current_node.tile.x == @target_x && @current_node.tile.y == @target_y
       # FOUND
-      @status = "Found path with #{@depth} checks (Took #{(((Gosu.milliseconds - @start_time)/1000.0) * @speed).round(1)} seconds)"
       @found_path = true
       loop do
         break unless @current_node.parent
@@ -136,6 +143,7 @@ class PathFinder
 
       @seeking = false
       # pp @path
+      @status = "Found path with #{@path.size} nodes, which had #{@depth} checks (Took #{((Gosu.milliseconds - @start_time)/1000.0).round(1)} seconds)"
       p "Path size: #{@path.size}"
       return
     end
