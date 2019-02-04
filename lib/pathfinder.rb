@@ -215,11 +215,9 @@ class PathFinder
       distance = Gosu.distance(node.tile.x, node.tile.y, @target_x, @target_y)
 
       if distance < fittest_distance
-        if fittest
-          if fittest.distance < node.distance && fittest.cost < node.cost
-            fittest = node
-            fittest_distance = distance
-          end
+        if fittest && (node.distance + node.cost) < (fittest.distance + fittest.cost)
+          fittest = node
+          fittest_distance = distance
         else
           fittest = node
           fittest_distance = distance
