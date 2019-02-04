@@ -19,3 +19,4 @@ Input:
 * Arrow Keys   - Move map about
 * R            - Delete tile under mouse
 * Tab          - Toggle visualization of pending and visited nodes
+* -/=          - Change steps per frame for pathfinder, defaults to 1
