@@ -1,0 +1,1 @@
+Tile = Struct.new(:x, :y, :cost, :color)
