@@ -113,6 +113,8 @@ class Window < Gosu::Window
       end
     when Gosu::KbTab
       @pathfinder.show_nodes = !@pathfinder.show_nodes
+    when Gosu::KbBacktick
+      @pathfinder.flood_fill = !@pathfinder.flood_fill
     when Gosu::MsWheelUp
       @zoom += @zoom_speed
     when Gosu::MsWheelDown

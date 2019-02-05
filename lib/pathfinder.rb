@@ -2,14 +2,15 @@ class PathFinder
   Node = Struct.new(:tile, :parent, :distance, :cost, :visited)
 
   attr_reader :status
-  attr_accessor :speed, :show_nodes
+  attr_accessor :speed, :show_nodes, :flood_fill
   def initialize(map:)
     @map = map
     @path = []
     @speed = 1
     @threads = []
-    @threaded = (ARGV.join.include?("-t") || ARGV.join.include?("--threaded")) ? true : false
-    @diagonal = (ARGV.join.include?("-nd") || ARGV.join.include?("--nodiagonal")) ? false : true
+    @threaded   = (ARGV.join.include?("-t")  || ARGV.join.include?("--threaded"))   ? true  : false
+    @diagonal   = (ARGV.join.include?("-nd") || ARGV.join.include?("--nodiagonal")) ? false : true
+    @flood_fill = (ARGV.join.include?("-w")  || ARGV.join.include?("--floodfill"))  ? true : false
     @show_nodes = true
 
     @nodes = [] # pending traversal
@@ -43,6 +44,7 @@ class PathFinder
   def draw
     if @show_nodes
       @checked_tiles.each do |node|
+        next unless node
         tile = node.tile
         Gosu.draw_rect(tile.x * @map.tile_size, tile.y * @map.tile_size, @map.tile_size, @map.tile_size, @color_visited, 10)
       end
@@ -123,16 +125,20 @@ class PathFinder
     end
   end
 
+  def duration(devisor = 1000.0, round_by = 1)
+    ((Gosu.milliseconds - @start_time)/devisor).round(round_by)
+  end
+
   def seek
     unless @current_node && @map.at(@target_x, @target_y)
-      @status = "No path found! Checked #{@depth} #{"(Target X: #{@target_x}, Y: #{@target_y} does not exist)" unless @map.at(@target_x, @target_y)}"
+      @status = "No path found! #{@depth} checks, took #{duration} seconds #{"(Target X: #{@target_x}, Y: #{@target_y} does not exist)" unless @map.at(@target_x, @target_y)}"
       @seeking = false
       return
     end
 
     # puts "Node: #{node.tile.x}:#{node.tile.y} Target: #{target_x}:#{target_y}"
     @visited[@current_node.tile.x][@current_node.tile.y] = true
-    @checked_tiles << @nodes.delete(@current_node)
+    @checked_tiles << @nodes.delete(@current_node) unless @flood_fill
 
     if @current_node.tile.x == @target_x && @current_node.tile.y == @target_y
       # FOUND
@@ -147,7 +153,7 @@ class PathFinder
 
       @seeking = false
       # pp @path
-      @status = "Found path with #{@path.size} nodes, which had #{@depth} checks (Took #{((Gosu.milliseconds - @start_time)/1000.0).round(1)} seconds)"
+      @status = "Found path with #{@path.size} nodes, which had #{@depth} checks (Took #{duration} seconds)"
       p "Path size: #{@path.size}"
       return
     end
@@ -205,27 +211,34 @@ class PathFinder
   end
 
   def next_node
-    fittest = nil
-    fittest_distance = Float::INFINITY
+    if @flood_fill
+      node = @nodes.shift
+      @checked_tiles << node
 
-    distance = nil
-    @nodes.each do |node|
-      next if node == @current_node
+      return node
+    else
+      fittest = nil
+      fittest_distance = Float::INFINITY
 
-      distance = Gosu.distance(node.tile.x, node.tile.y, @target_x, @target_y)
+      distance = nil
+      @nodes.each do |node|
+        next if node == @current_node
 
-      if distance < fittest_distance
-        if fittest && (node.distance + node.cost) < (fittest.distance + fittest.cost)
-          fittest = node
-          fittest_distance = distance
-        else
-          fittest = node
-          fittest_distance = distance
+        distance = Gosu.distance(node.tile.x, node.tile.y, @target_x, @target_y)
+
+        if distance < fittest_distance
+          if fittest && (node.distance + node.cost) < (fittest.distance + fittest.cost)
+            fittest = node
+            fittest_distance = distance
+          else
+            fittest = node
+            fittest_distance = distance
+          end
         end
       end
-    end
 
-    return fittest
+      return fittest
+    end
   end
 
   def create_node(x, y, parent = nil)
