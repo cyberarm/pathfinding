@@ -158,7 +158,7 @@ class PathFinder
       return
     end
 
-    @status = "Searching at X: #{@current_node.tile.x}, Y: #{@current_node.tile.y}..."
+    @status = "Searching using #{@flood_fill ? 'Flood Fill' : 'Directed Flood Fill'} at X: #{@current_node.tile.x}, Y: #{@current_node.tile.y}..."
 
     #LEFT
     add_node create_node(@current_node.tile.x - 1, @current_node.tile.y, @current_node)

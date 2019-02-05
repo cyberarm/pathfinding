@@ -6,7 +6,6 @@ require_relative "lib/pathfinder"
 class Window < Gosu::Window
   def initialize
     @fullscreen = (ARGV.join.include?("-f") || ARGV.join.include?("--fullscreen"))
-    p @fullscreen
 
     if @fullscreen
       super(Gosu.screen_width, Gosu.screen_height, fullscreen: @fullscreen)

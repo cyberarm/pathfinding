@@ -9,9 +9,11 @@ Options:
 * `--fullscreen`, `-f`  - Make with fullscreen
 * `--threaded`, `-t`    - Enables using a thread to finish search as fast as possible, instead of animating it.
 * `--nodiagonal`, `-nd` - Disable diagonal paths
+* `--floodfill`, `-w`   - Use flood fill by default
 
 Input:
 * F5           - Find path
+* `            - Toggle between pathfinding algorithms
 * Left Mouse   - Set starting position, if over a tile
 * Middle Mouse - Place tile, if no tile already there
 * Right Mouse  - Set target position, if over a tile
